@@ -5,7 +5,7 @@
    ========================================================= */
 
 // ---------- Config ----------
-const API_URL = "http://127.0.0.1:8000/predict";
+const API_URL = "https://mindpulse-mental-health-score-qlt4.onrender.com";
 
 // The model's prediction is treated as a score out of MAX_SCORE (e.g. a
 // raw value like 6.82 reads as 68.2% "completed"). Change this if your
