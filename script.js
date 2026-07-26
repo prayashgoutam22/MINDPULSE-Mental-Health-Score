@@ -6,7 +6,7 @@
 // ──────────────────────────────────────────────────────────
 // CONFIG
 // ──────────────────────────────────────────────────────────
-const API_URL  = 'https://mindpulse-mental-health-score.onrender.com';
+const API_URL  = 'https://mindpulse-mental-health-score-qlt4.onrender.com';
 const MAX_SCORE = 10;
 
 // ──────────────────────────────────────────────────────────
