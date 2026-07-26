@@ -1,29 +1,272 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MindPulse — Mental Health Score Predictor</title>
-  <meta name="description" content="Predict your mental wellness score using your social media habits, sleep patterns, and lifestyle data powered by machine learning." />
+  <title>Mental Health Prediction</title>
 
-  <!-- Preconnect for performance -->
+  <!-- Google Font: Manrope -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Theme flash prevention -->
-  <script>
-    (function () {
-      const t = localStorage.getItem('mp-theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', t);
-    })();
-  </script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
 
   <link rel="stylesheet" href="style.css" />
+
+  <!--
+    Applying the saved theme before paint (instead of waiting for script.js)
+    avoids a flash of the wrong theme on load.
+  -->
+  <script>
+    (function () {
+      const saved = localStorage.getItem("mh-theme");
+      const theme = saved || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
 </head>
 <body>
-  <!-- JS builds all UI into #root -->
-  <div id="root"></div>
+
+  <!-- Ambient background orbs (purely decorative, sit behind everything) -->
+  <div class="bg-orb bg-orb-1" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-2" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-3" aria-hidden="true"></div>
+
+  <!-- Slow-drifting particles for a calm, continuous ambient motion -->
+  <div class="bg-particles" aria-hidden="true">
+    <span class="particle" style="--x:8%;  --size:5px; --duration:17s; --delay:0s;"></span>
+    <span class="particle" style="--x:22%; --size:3px; --duration:21s; --delay:3s;"></span>
+    <span class="particle" style="--x:38%; --size:6px; --duration:19s; --delay:6s;"></span>
+    <span class="particle" style="--x:54%; --size:4px; --duration:23s; --delay:1.5s;"></span>
+    <span class="particle" style="--x:69%; --size:3px; --duration:18s; --delay:4.5s;"></span>
+    <span class="particle" style="--x:82%; --size:5px; --duration:22s; --delay:2s;"></span>
+    <span class="particle" style="--x:93%; --size:4px; --duration:20s; --delay:5s;"></span>
+  </div>
+
+  <div class="page">
+
+    <!-- ===================== TOP BAR ===================== -->
+    <div class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+          <path d="M3 12H7L9.5 5L14 19L16.5 12H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span>Mental Health Predictor</span>
+      </div>
+
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.8" />
+          <path d="M12 2.5V5M12 19V21.5M4.2 4.2L6 6M18 18L19.8 19.8M2.5 12H5M19 12H21.5M4.2 19.8L6 18M18 6L19.8 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" fill="none" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- ===================== HERO SECTION ===================== -->
+    <header class="hero">
+      <div class="hero-icon" aria-hidden="true">
+        <!-- Heartbeat / pulse SVG icon -->
+        <svg viewBox="0 0 48 48" width="40" height="40" fill="none">
+          <circle cx="24" cy="24" r="22" fill="var(--accent-light)" />
+          <path
+            d="M10 24H16L19.5 15L24.5 33L28 24H38"
+            stroke="var(--accent)"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+      <h1 class="hero-title">Mental Health Prediction</h1>
+      <p class="hero-subtitle">
+        Predict your mental wellness score using your social media habits and lifestyle.
+      </p>
+    </header>
+
+    <!-- ===================== FORM CARD ===================== -->
+    <main>
+      <section class="card form-card">
+        <form id="predictionForm" novalidate>
+          <div class="form-grid">
+
+            <!-- Age -->
+            <div class="field" style="--i:0">
+              <label for="age">Age</label>
+              <input type="number" id="age" name="age" min="10" max="100" placeholder="e.g. 25" required />
+              <span class="error-message" id="error-age"></span>
+            </div>
+
+            <!-- Gender -->
+            <div class="field" style="--i:1">
+              <label for="gender">Gender</label>
+              <select id="gender" name="gender" required>
+                <option value="" disabled selected>Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+              <span class="error-message" id="error-gender"></span>
+            </div>
+
+            <!-- Country -->
+            <div class="field" style="--i:2">
+              <label for="country">Country</label>
+              <input type="text" id="country" name="country" placeholder="Enter your country" required />
+              <span class="error-message" id="error-country"></span>
+            </div>
+
+            <!-- Academic Level -->
+            <div class="field" style="--i:3">
+              <label for="academicLevel">Academic Level</label>
+              <select id="academicLevel" name="academic_Level" required>
+                <option value="" disabled selected>Select level</option>
+                <option value="Undergraduate">Undergraduate</option>
+                <option value="Graduate">Graduate</option>
+                <option value="High School">High School</option>
+              </select>
+              <span class="error-message" id="error-academicLevel"></span>
+            </div>
+
+            <!-- Most Used Platform -->
+            <div class="field" style="--i:4">
+              <label for="platform">Most Used Platform</label>
+              <select id="platform" name="most_Used_Platform" required>
+                <option value="" disabled selected>Select platform</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Instagram">Instagram</option>
+                <option value="LinkedIn">LinkedIn</option>
+                <option value="Snapchat">Snapchat</option>
+                <option value="Twitter">Twitter</option>
+                <option value="YouTube">YouTube</option>
+                <option value="TikTok">TikTok</option>
+                <option value="LINE">LINE</option>
+                <option value="KakaoTalk">KakaoTalk</option>
+                <option value="VKontakte">VKontakte</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="WeChat">WeChat</option>
+              </select>
+              <span class="error-message" id="error-platform"></span>
+            </div>
+
+            <!-- Purpose Of Use -->
+            <div class="field" style="--i:5">
+              <label for="purpose">Purpose Of Use</label>
+              <select id="purpose" name="purpose_Of_Use" required>
+                <option value="" disabled selected>Select purpose</option>
+                <option value="Networking">Networking</option>
+                <option value="Education">Education</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="News">News</option>
+              </select>
+              <span class="error-message" id="error-purpose"></span>
+            </div>
+
+            <!-- Average Daily Usage Hours -->
+            <div class="field" style="--i:6">
+              <label for="usageHours">Average Daily Usage Hours</label>
+              <input type="number" id="usageHours" name="avg_Daily_Usage_Hours" step="0.1" min="0" max="24" placeholder="e.g. 5.0" required />
+              <span class="error-message" id="error-usageHours"></span>
+            </div>
+
+            <!-- Daily Unlocks -->
+            <div class="field" style="--i:7">
+              <label for="dailyUnlocks">Daily Unlocks</label>
+              <input type="number" id="dailyUnlocks" name="daily_Unlocks" min="0" placeholder="e.g. 80" required />
+              <span class="error-message" id="error-dailyUnlocks"></span>
+            </div>
+
+            <!-- Study Hours -->
+            <div class="field" style="--i:8">
+              <label for="studyHours">Study Hours</label>
+              <input type="number" id="studyHours" name="study_Hours" step="0.1" min="0" max="24" placeholder="e.g. 4.0" required />
+              <span class="error-message" id="error-studyHours"></span>
+            </div>
+
+            <!-- Physical Activity Hours -->
+            <div class="field" style="--i:9">
+              <label for="activityHours">Physical Activity Hours</label>
+              <input type="number" id="activityHours" name="physical_Activity_Hours" step="0.1" min="0" max="24" placeholder="e.g. 1.5" required />
+              <span class="error-message" id="error-activityHours"></span>
+            </div>
+
+            <!-- Sleep Hours Per Night -->
+            <div class="field" style="--i:10">
+              <label for="sleepHours">Sleep Hours Per Night</label>
+              <input type="number" id="sleepHours" name="sleep_Hours_Per_Night" step="0.1" min="0" max="24" placeholder="e.g. 7.0" required />
+              <span class="error-message" id="error-sleepHours"></span>
+            </div>
+
+            <!-- Stress Level -->
+            <div class="field" style="--i:11">
+              <label for="stressLevel">Stress Level</label>
+              <select id="stressLevel" name="stress_Level" required>
+                <option value="" disabled selected>Select stress level</option>
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Very High">Very High</option>
+              </select>
+              <span class="error-message" id="error-stressLevel"></span>
+            </div>
+
+          </div>
+
+          <!-- API connection error banner -->
+          <div class="api-error" id="apiError" hidden></div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn-predict" id="predictBtn">
+            <span class="btn-text">Predict Mental Score</span>
+            <span class="spinner" id="spinner" hidden></span>
+          </button>
+        </form>
+      </section>
+
+      <!-- ===================== RESULT CARD ===================== -->
+      <section class="card result-card" id="resultCard" hidden>
+        <p class="result-eyebrow">Prediction Completed</p>
+        <h2 class="result-title">Mental Health Score</h2>
+
+        <!-- Semicircular "meter" style progress loader -->
+        <div class="loader-wrap">
+          <svg id="meterSvg" viewBox="0 0 300 168" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="meterGradient" gradientUnits="userSpaceOnUse" x1="30" y1="150" x2="270" y2="150">
+                <stop offset="0%" stop-color="#B8483D" />
+                <stop offset="35%" stop-color="#C99A4B" />
+                <stop offset="65%" stop-color="#6FA98D" />
+                <stop offset="100%" stop-color="#2F6F62" />
+              </linearGradient>
+            </defs>
+            <path id="meterTrack" class="meter-track"></path>
+            <path id="meterFill" class="meter-fill"></path>
+          </svg>
+
+          <div class="meter-readout">
+            <span class="progress-percent" id="progressPercent">0%</span>
+          </div>
+        </div>
+
+        <p class="raw-score" id="rawScore">Score: 0.00 / 10</p>
+        <p class="result-label" id="scoreLabel">&nbsp;</p>
+
+        <div class="result-actions">
+          <button type="button" class="btn-secondary" id="resetBtn">New Prediction</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer class="footer">
+      <p>Powered by FastAPI &bull; Machine Learning &bull; HTML/CSS/JavaScript</p>
+    </footer>
+
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
